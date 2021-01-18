@@ -10,7 +10,7 @@ class Supplier:
     def __init__(self, id, name, logistic):
         self.id = id
         self.name = name
-        self.contact_information = contact_information
+        self.logistic = logistic
 
 
 class Clinic:
@@ -22,8 +22,8 @@ class Clinic:
 
 
 class Logistic:
-    def __init__(self, id, name, sent, recieved):
+    def __init__(self, id, name, count_sent, count_received):
         self.id = id
         self.name = name
-        self.sent = sent
-        self.recieved = recieved
+        self.count_sent = count_sent
+        self.count_received = count_received
