@@ -5,8 +5,8 @@ from persistence.Repository import repo
 from persistence.DTO import *
 from os import path, remove
 
-if path.isfile("output.txt"):
-    remove("output.txt")
+if path.isfile(sys.argv[3]):
+    remove(sys.argv[3])
 repo.create_tables()
 
 
