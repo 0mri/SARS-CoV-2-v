@@ -1,11 +1,16 @@
 
+
 import sys
 from persistence.Repository import repo
 from persistence.DTO import *
-from os import path
+from os import path, remove
 
+if path.isfile("output.txt"):
+    remove("output.txt")
 repo.create_tables()
-if(not path.exists("database.db")):
+
+
+def import_data():
     with open(sys.argv[1], 'r') as reader:
         line = reader.readline()
         data_arr = line.split(',')
@@ -41,11 +46,7 @@ if(not path.exists("database.db")):
                 logistic_data_arr[0], logistic_data_arr[1], logistic_data_arr[2], logistic_data_arr[3])
             repo.logistics.insert(logistic)
 
-repo._conn.commit()
+    repo._conn.commit()
 
 
-def output(parameter_list):
-    """
-    docstring
-    """
-    pass
+import_data()

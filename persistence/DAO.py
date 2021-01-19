@@ -38,7 +38,12 @@ class _Vaccines:
         self._cursor.execute("""
             SELECT * FROM vaccines ORDER BY(date) ASC
         """)
-        return Vaccine(*self._cursor.fetchone())
+        vaccine = self._cursor.fetchone()
+        try:
+            return Vaccine(*vaccine)
+        except:
+            pass
+        return None
 
     def decrease(self, vaccine, **kwargs):
         col = list(kwargs.keys())[0]   # first argument-key
@@ -54,9 +59,9 @@ class _Vaccines:
         """, [vaccine.id])
 
     def sum(self, col):
-        self._cursor.execute("""
+        self._cursor.execute(f"""
                 SELECT SUM({col}) FROM vaccines
-        """.format(col))
+        """)
         return self._cursor.fetchone()
 
 
@@ -112,32 +117,36 @@ class _Clinics:
         """.format(col), [val])
         return Clinic(*self._cursor.fetchone())
 
-    def update(self, logistic, **kwargs):  # ?
+    def update(self, logistic, **kwargs):
         _id = logistic.id
         col = list(kwargs.keys())[0]   # first argument-key
         val = list(kwargs.values())[0]  # first argument-val
 
         self._cursor.execute("""
-        UPDATE logistics SET {col} = (?) WHERE logistics.id = (?)
+        UPDATE clinics SET {col} = (?) WHERE clinics.id = (?)
         """.format(col=col), [val, _id])
 
-    def increment(self, logistic, **kwargs):  # ?
+    def increment(self, logistic, **kwargs):
         _id = logistic.id
         col = list(kwargs.keys())[0]   # first argument-key
         val = list(kwargs.values())[0]  # first argument-val
 
         self._cursor.execute("""
-        UPDATE logistics SET {col} = ({col} + ?) WHERE logistics.id = (?)
+        UPDATE clinics SET {col} = ({col} + ?) WHERE clinics.id = (?)
         """.format(col=col), [val, _id])
 
-    def decrease(self, logistic, **kwargs):  # ?
-        _id = logistic.id
+    def decrease(self, clinic, **kwargs):
         col = list(kwargs.keys())[0]   # first argument-key
         val = list(kwargs.values())[0]  # first argument-val
+        self._cursor.execute(f"""
+        UPDATE clinics SET {col} = {col} - ? WHERE id = ?
+        """, [val, clinic.id])
 
-        self._cursor.execute("""
-        UPDATE logistics SET {col} = ({col} - ?) WHERE logistics.id = (?)
-        """.format(col=col), [val, _id])
+    def sum(self, col):
+        self._cursor.execute(f"""
+                SELECT SUM({col}) FROM clinics
+        """)
+        return self._cursor.fetchone()
 
 
 class _Logistics:
@@ -157,7 +166,12 @@ class _Logistics:
         self._cursor.execute("""
             SELECT * FROM logistics WHERE {} = ?
         """.format(col), [val])
-        return Logistic(*self._cursor.fetchone())
+        try:
+            return Logistic(*self._cursor.fetchone())
+        except:
+            pass
+
+        return None
 
     def all(self, **kwargs):
         self._cursor.execute("""
@@ -173,7 +187,7 @@ class _Logistics:
         _all = self._cursor.fetchall()
         return [Logistic(*logistic) for logistic in _all]
 
-    def update(self, logistic, **kwargs):  # ?
+    def update(self, logistic, **kwargs):
         _id = logistic.id
         col = list(kwargs.keys())[0]   # first argument-key
         val = list(kwargs.values())[0]  # first argument-val
@@ -182,25 +196,23 @@ class _Logistics:
         UPDATE logistics SET {col} = (?) WHERE logistics.id = (?)
         """.format(col=col), [val, _id])
 
-    def increment(self, logistic, **kwargs):  # ?
-        _id = logistic.id
+    def increment(self, logistic, **kwargs):
         col = list(kwargs.keys())[0]   # first argument-key
         val = list(kwargs.values())[0]  # first argument-val
 
-        self._cursor.execute("""
-        UPDATE logistics SET {col} = ({col} + ?) WHERE logistics.id = (?)
-        """.format(col=col), [val, _id])
+        self._cursor.execute(f"""
+        UPDATE logistics SET {col} = {col} + ? WHERE id = ?
+        """, [val, logistic.id])
 
-    def decrease(self, logistic, **kwargs):  # ?
+    def decrease(self, logistic, **kwargs):
         col = list(kwargs.keys())[0]   # first argument-key
         val = list(kwargs.values())[0]  # first argument-val
-
-        self._cursor.execute("""
-        UPDATE logistics SET {col} = ({col} - ?) WHERE logistics.id = (?)
-        """.format(col=col), [val, logistic.id])
+        self._cursor.execute(f"""
+        UPDATE logistics SET {col} = {col} - ? WHERE id = ?
+        """, [val, logistic.id])
 
     def sum(self, col):
-        self._cursor.execute("""
-                SELECT SUM({col}) FROM vaccines
-        """.format(col))
+        self._cursor.execute(f"""
+            SELECT SUM({col}) FROM logistics
+    """)
         return self._cursor.fetchone()

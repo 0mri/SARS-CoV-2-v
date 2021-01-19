@@ -3,7 +3,7 @@ class Vaccine:
         self.id = vac_id
         self.date = date
         self.supplier = sup
-        self.quantity = 0
+        self.quantity = quantity
 
 
 class Supplier:

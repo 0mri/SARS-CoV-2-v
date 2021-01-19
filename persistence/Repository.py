@@ -1,10 +1,13 @@
 from persistence import DAO, DTO
 import sqlite3
 import atexit
+import os
 
 
 class _Repository:
     def __init__(self):
+        if os.path.isfile("database.db"):
+            os.remove("database.db")
         self._conn = sqlite3.connect('database.db')
         self.vaccines = DAO._Vaccines(self._conn)
         self.suppliers = DAO._Suppliers(self._conn)
@@ -44,33 +47,33 @@ class _Repository:
         );
         """)
 
-    def receive_shipment(self, arrOfCurrOrder):
-        supplier = self.suppliers.get(name=arrOfCurrOrder[0])
-        vaccToAdd = DTO.Vaccine(
-            0, arrOfCurrOrder[2], supplier[0], arrOfCurrOrder[1])
-        self.vaccines.insert(vaccToAdd)
-        logistic = self.logistics.get(id=supplier[2])
-        self.logistics.update(logistic, received_count=arrOfCurrOrder[1])
+    def receive(self, order_data_arr):
+        supplier = self.suppliers.get(name=order_data_arr[0])
+        vaccine = DTO.Vaccine(
+            0, order_data_arr[2], supplier.id, order_data_arr[1])
+        self.vaccines.insert(vaccine)
+        logistic = self.logistics.get(id=supplier.logistic)
+        self.logistics.increment(logistic, count_received=order_data_arr[1])
         self._conn.commit()
 
-    def send_shipment(self, arrOfCurrOrder):
-        amount = int(arrOfCurrOrder[1])
-        while amount > 0:
-            vaccine = self.vaccines.getVaccineToSend()
-            if vaccine is None:
-                break
-            tempAmount = amount - vaccine.quantity
-            if (tempAmount > 0):
-                self.vaccines.deleteVacc(vaccine.id)
-                amount = tempAmount
+    def send(self, order_data_arr):
+        amount = int(order_data_arr[1])
+        vaccine = self.vaccines.first()
+        while vaccine:
+            if (amount - vaccine.quantity > 0):
+                self.vaccines.delete(vaccine)
+                amount = amount - vaccine.quantity
             else:
-                self.vaccines.update(vaccine, quantity=amount)
+                self.vaccines.decrease(vaccine, quantity=amount)
                 amount = 0
-        supplied = int(arrOfCurrOrder[1]) - amount
-        clinic = self.clinics.get(location=arrOfCurrOrder[0])
-        self.clinics.updateDemand(clinic[0], supplied)
-        logistic = self.logistics.get(id=clinic[3])
-        self.logistics.update(logistic, count_sent=supplied)
+                break
+            vaccine = self.vaccines.first()
+
+        supplied = int(order_data_arr[1]) - amount
+        clinic = self.clinics.get(location=order_data_arr[0])
+        self.clinics.decrease(clinic, demand=supplied)
+        logistic = self.logistics.get(id=clinic.logistic)
+        self.logistics.increment(logistic, count_sent=supplied)
         self._conn.commit()
 
 
